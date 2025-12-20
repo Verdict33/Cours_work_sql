@@ -179,12 +179,19 @@ def accept_delivery(request, delivery_id):
     delivery = get_object_or_404(Delivery, id=delivery_id, status='оформлен', driver__isnull=True)
 
     if driver.status == 'свободен':
+        # 1. Обновляем доставку
         delivery.driver = driver
         delivery.status = 'в пути'
         delivery.save()
 
+        # 2. Обновляем водителя
         driver.status = 'в пути'
         driver.save()
+
+        # 3. Обновляем статус машины (если она есть)
+        if driver.fleet:
+            driver.fleet.status = 'используется'
+            driver.fleet.save()
 
     return redirect('driver_dashboard')
 
@@ -197,12 +204,19 @@ def cancel_delivery(request, delivery_id):
     driver = request.user.driver
     delivery = get_object_or_404(Delivery, id=delivery_id, driver=driver, status='в пути')
 
+    # 1. Сбрасываем доставку
     delivery.driver = None
     delivery.status = 'оформлен'
     delivery.save()
 
+    # 2. Освобождаем водителя
     driver.status = 'свободен'
     driver.save()
+
+    # 3. Освобождаем машину (возвращаем на стоянку)
+    if driver.fleet:
+        driver.fleet.status = 'на стоянке'
+        driver.fleet.save()
 
     return redirect('driver_dashboard')
 
@@ -215,11 +229,18 @@ def complete_delivery(request, delivery_id):
     driver = request.user.driver
     delivery = get_object_or_404(Delivery, id=delivery_id, driver=driver, status='в пути')
 
+    # 1. Завершаем доставку
     delivery.status = 'доставлен'
     delivery.save()
 
+    # 2. Освобождаем водителя
     driver.status = 'свободен'
     driver.save()
+
+    # 3. Освобождаем машину (возвращаем на стоянку)
+    if driver.fleet:
+        driver.fleet.status = 'на стоянке'
+        driver.fleet.save()
 
     return redirect('driver_dashboard')
 

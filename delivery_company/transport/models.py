@@ -32,14 +32,13 @@ class Client(models.Model):
 
 class Fleet(models.Model):
     STATUS_CHOICES = [
-        ('в эксплуатации', 'В эксплуатации'),
-        ('на ремонте', 'На ремонте'),
-        ('простой', 'Простой'),
+        ('используется', 'Используется'),  # Было "в эксплуатации"
+        ('на стоянке', 'На стоянке'),  # Было "простой"
     ]
 
     license_plate = models.CharField(max_length=20, unique=True)
     model = models.CharField(max_length=100)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='на стоянке')  # Добавил дефолт
     capacity = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
@@ -122,7 +121,6 @@ class Delivery(models.Model):
     driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES)
     delivery_type = models.CharField(max_length=50, choices=DELIVERY_TYPE_CHOICES)
-    requested_drivers_count = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

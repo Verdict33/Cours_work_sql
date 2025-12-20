@@ -37,19 +37,18 @@ class CustomUserCreationForm(UserCreationForm):
         super().__init__(*args, **kwargs)
 
         # 1. Формируем список выбора автомобиля
-        # Вариант по умолчанию
         fleet_choices = [('own', 'Свой автомобиль')]
 
-        # Добавляем свободные машины из базы (статус 'простой')
-        # Если у вас нет машин в базе, список будет содержать только "Свой автомобиль"
         try:
-            available_fleets = Fleet.objects.filter(status='простой')
+            # ИЗМЕНЕНИЕ ЗДЕСЬ: ищем машины со статусом 'на стоянке'
+            available_fleets = Fleet.objects.filter(status='на стоянке')
             for car in available_fleets:
-                # Формат: ID, "Volvo (x000xx)"
                 fleet_choices.append((str(car.id), str(car)))
         except Exception:
-            # На случай, если миграции еще не применены
             pass
+
+        self.fields['fleet_choice'].choices = fleet_choices
+        self.fields['fleet_choice'].widget.attrs.update({'class': 'form-select'})
 
         self.fields['fleet_choice'].choices = fleet_choices
         # Добавляем класс bootstrap
@@ -94,7 +93,7 @@ class CustomUserCreationForm(UserCreationForm):
                     try:
                         assigned_fleet = Fleet.objects.get(id=int(choice))
                     except Fleet.DoesNotExist:
-                        assigned_fleet = None
+                        assigned_fleet = 'нет информации'
 
                 Driver.objects.create(
                     user=user,
@@ -114,10 +113,9 @@ class CustomUserCreationForm(UserCreationForm):
 class DeliveryForm(forms.ModelForm):
     class Meta:
         model = Delivery
-        fields = ['delivery_type', 'requested_drivers_count']
+        fields = ['delivery_type']
         widgets = {
             'delivery_type': forms.Select(attrs={'class': 'form-control'}),
-            'requested_drivers_count': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
 
 

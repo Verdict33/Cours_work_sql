@@ -54,14 +54,18 @@
                                 <span class="badge bg-danger">Отменён</span>
                             {% endif %}
                         </td>
+
                         <td>
                             {% if delivery.driver %}
-                                {{ delivery.driver.last_name }} {{ delivery.driver.first_name }}<br>
+                                <!-- 3. Добавлено отчество (patronymic) -->
+                                {{ delivery.driver.last_name }} {{ delivery.driver.first_name }} {{ delivery.driver.patronymic|default:"" }}<br>
                                 <small class="text-muted">{{ delivery.driver.phone }}</small>
                             {% else %}
                                 <span class="text-muted fst-italic">Поиск водителя...</span>
                             {% endif %}
                         </td>
+
+
                         <td>
                             <!-- Кнопка удаления доступна только если заказ оформлен и водитель не назначен -->
                             {% if delivery.status == 'оформлен' and not delivery.driver %}

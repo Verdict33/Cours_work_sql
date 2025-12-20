@@ -9,14 +9,18 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">Транспортная компания</a>
+            <!-- 1. Заменили ссылку <a> на <span>, убрали href -->
+            <span class="navbar-brand mb-0 h1">Транспортная компания</span>
 
             {% if user.is_authenticated %}
-            <div class="navbar-nav ms-auto">
+            <div class="navbar-nav ms-auto align-items-center">
                 <span class="navbar-text me-3">
                     Привет, {{ user.username }}!
                 </span>
-                <a class="nav-link" href="{% url 'dashboard' %}">Дашборд</a>
+
+                <!-- 2. Ссылка "Дашборд" удалена отсюда -->
+
+                <!-- Кнопка выхода (форма, которую мы сделали на прошлом шаге) -->
                 <form action="{% url 'logout' %}" method="post" class="d-inline">
                     {% csrf_token %}
                     <button type="submit" class="nav-link bg-transparent border-0 p-2">Выйти</button>
