@@ -148,24 +148,6 @@ class Route(models.Model):
         return f"Маршрут {self.departure_city} - {self.arrival_city}"
 
 
-class DriverDowntime(models.Model):
-    driver = models.ForeignKey(Driver, on_delete=models.CASCADE)
-    start_datetime = models.DateTimeField()
-    end_datetime = models.DateTimeField(null=True, blank=True)
-    total_duration = models.DurationField(null=True, blank=True)
-
-    class Meta:
-        db_table = 'driver_downtime'
-
-    def save(self, *args, **kwargs):
-        if self.end_datetime and self.start_datetime:
-            self.total_duration = self.end_datetime - self.start_datetime
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"Простой {self.driver} - {self.start_datetime}"
-
-
 class Feedback(models.Model):
     delivery = models.ForeignKey(Delivery, on_delete=models.RESTRICT)
     client = models.ForeignKey(Client, on_delete=models.RESTRICT)

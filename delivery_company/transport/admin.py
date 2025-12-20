@@ -35,6 +35,5 @@ class DeliveryAdmin(admin.ModelAdmin):
 admin.site.register(Cargo)
 admin.site.register(Route)
 admin.site.register(VehicleMaintenance)
-admin.site.register(DriverDowntime)
 admin.site.register(Feedback)
 admin.site.register(Payment)

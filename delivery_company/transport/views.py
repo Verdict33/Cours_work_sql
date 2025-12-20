@@ -112,7 +112,8 @@ def delete_delivery(request, delivery_id):
     delivery = get_object_or_404(Delivery, id=delivery_id, client=client)
 
     if delivery.status == 'оформлен' and delivery.driver is None:
-        delivery.delete()
+        delivery.status = 'отменён'
+        delivery.save()
 
     return redirect('client_dashboard')
 
