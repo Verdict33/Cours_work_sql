@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
-from .models import *
 from .forms import *
+from decimal import Decimal
 
 
 def register_view(request):
@@ -263,3 +263,64 @@ def driver_profile(request):
         'current_deliveries': current_deliveries,
     }
     return render(request, 'driver/profile.html', context)
+
+
+@login_required
+def leave_feedback(request, delivery_id):
+    if not hasattr(request.user, 'client'):
+        return HttpResponseForbidden("Доступ запрещен")
+
+    client = request.user.client
+    # Получаем доставку, которая завершена и принадлежит этому клиенту
+    delivery = get_object_or_404(Delivery, id=delivery_id, client=client, status='доставлен')
+
+    if request.method == 'POST':
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            # Проверяем, нет ли уже отзыва на эту доставку
+            if Feedback.objects.filter(delivery=delivery).exists():
+                # Если отзыв уже есть, просто обновляем страницу (или можно вывести сообщение)
+                return redirect('client_dashboard')
+
+            feedback = form.save(commit=False)
+            feedback.delivery = delivery
+            feedback.client = client
+            feedback.save()
+
+    return redirect('client_dashboard')
+
+
+@login_required
+def make_payment(request, delivery_id):
+    if not hasattr(request.user, 'client'):
+        return HttpResponseForbidden("Доступ запрещен")
+
+    client = request.user.client
+    delivery = get_object_or_404(Delivery, id=delivery_id, client=client, status='доставлен')
+
+    # Проверка: если уже оплачено, не даем платить второй раз
+    if delivery.payment_set.exists():
+        return redirect('client_dashboard')
+
+    # Расчет стоимости (Примерная формула: 50 руб/км + 10 руб/кг)
+    distance = delivery.route.distance if delivery.route.distance else 0
+    weight = delivery.cargo.weight if delivery.cargo.weight else 0
+    # Используем Decimal для точности денег
+    calculated_amount = (distance * Decimal('50.00')) + (weight * Decimal('10.00'))
+
+    # Минимальная стоимость доставки 500р
+    if calculated_amount < 500:
+        calculated_amount = Decimal('500.00')
+
+    if request.method == 'POST':
+        form = PaymentForm(request.POST)
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.delivery = delivery
+            payment.amount = calculated_amount
+            payment.status = 'проведён'  # Сразу считаем успешным для упрощения
+            payment.save()
+            return redirect('client_dashboard')
+
+    # Если GET запрос (или ошибка), возвращаем на дашборд
+    return redirect('client_dashboard')

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Client, Driver, Delivery, Cargo, Route, Fleet
+from .models import Client, Driver, Delivery, Cargo, Route, Fleet, Feedback, Payment
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -145,4 +145,31 @@ class RouteForm(forms.ModelForm):
             'arrival_street': forms.TextInput(attrs={'class': 'form-control'}),
             'arrival_house': forms.TextInput(attrs={'class': 'form-control'}),
             'distance': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ['content']
+        labels = {
+            'content': 'Ваш отзыв',
+        }
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Напишите, как прошла доставка...'
+            }),
+        }
+
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        fields = ['method']
+        labels = {
+            'method': 'Способ оплаты'
+        }
+        widgets = {
+            'method': forms.Select(attrs={'class': 'form-select'}),
         }

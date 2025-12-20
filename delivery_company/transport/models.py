@@ -170,8 +170,6 @@ class Payment(models.Model):
     STATUS_CHOICES = [
         ('проведён', 'Проведён'),
         ('отклонён', 'Отклонён'),
-        ('в обработке', 'В обработке'),
-        ('возврат', 'Возврат'),
     ]
 
     delivery = models.ForeignKey(Delivery, on_delete=models.RESTRICT)
@@ -179,7 +177,6 @@ class Payment(models.Model):
     payment_date = models.DateTimeField(auto_now_add=True)
     method = models.CharField(max_length=50, choices=METHOD_CHOICES)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES)
-    comment = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = 'payments'

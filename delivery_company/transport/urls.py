@@ -15,6 +15,8 @@ urlpatterns = [
     path('client/delivery/create/', views.create_delivery, name='create_delivery'),
     path('client/delivery/delete/<int:delivery_id>/', views.delete_delivery, name='delete_delivery'),
     path('client/profile/', views.client_profile, name='client_profile'),
+    path('client/feedback/<int:delivery_id>/', views.leave_feedback, name='leave_feedback'),
+    path('client/payment/<int:delivery_id>/', views.make_payment, name='make_payment'),
 
     # Водительские URL
     path('driver/dashboard/', views.driver_dashboard, name='driver_dashboard'),
