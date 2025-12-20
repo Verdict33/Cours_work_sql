@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Мои доставки</h2>
+        <p class="text-muted">История ваших заказов и их текущий статус</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'create_delivery' %}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> + Создать заказ
+        </a>
+        <a href="{% url 'client_profile' %}" class="btn btn-outline-primary ms-2">Профиль</a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if deliveries %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Груз</th>
+                        <th>Маршрут</th>
+                        <th>Тип</th>
+                        <th>Статус</th>
+                        <th>Водитель</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for delivery in deliveries %}
+                    <tr>
+                        <td><strong>{{ delivery.id }}</strong></td>
+                        <td>
+                            {{ delivery.cargo.name }}<br>
+                            <small class="text-muted">{{ delivery.cargo.weight }} кг</small>
+                        </td>
+                        <td>
+                            <small>Откуда:</small> {{ delivery.route.departure_city }}<br>
+                            <small>Куда:</small> {{ delivery.route.arrival_city }}
+                        </td>
+                        <td>{{ delivery.get_delivery_type_display }}</td>
+                        <td>
+                            {% if delivery.status == 'оформлен' %}
+                                <span class="badge bg-info text-dark">Оформлен</span>
+                            {% elif delivery.status == 'в пути' %}
+                                <span class="badge bg-warning text-dark">В пути</span>
+                            {% elif delivery.status == 'доставлен' %}
+                                <span class="badge bg-success">Доставлен</span>
+                            {% elif delivery.status == 'отменён' %}
+                                <span class="badge bg-danger">Отменён</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if delivery.driver %}
+                                {{ delivery.driver.last_name }} {{ delivery.driver.first_name }}<br>
+                                <small class="text-muted">{{ delivery.driver.phone }}</small>
+                            {% else %}
+                                <span class="text-muted fst-italic">Поиск водителя...</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- Кнопка удаления доступна только если заказ оформлен и водитель не назначен -->
+                            {% if delivery.status == 'оформлен' and not delivery.driver %}
+                                <a href="{% url 'delete_delivery' delivery.id %}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('Вы уверены, что хотите удалить этот заказ?');">
+                                    Отменить
+                                </a>
+                            {% else %}
+                                <button class="btn btn-sm btn-secondary" disabled>Нет действий</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="text-center py-5">
+                <h3>У вас пока нет заказов</h3>
+                <p class="text-muted">Создайте свой первый заказ на доставку прямо сейчас!</p>
+                <a href="{% url 'create_delivery' %}" class="btn btn-primary mt-3">Создать заказ</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

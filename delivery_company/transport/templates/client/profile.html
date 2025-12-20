@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Личный кабинет клиента</h2>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Всего заказов</div>
+                <div class="card-body">
+                    <h1 class="card-title">{{ total_deliveries }}</h1>
+                    <p class="card-text">Общее количество оформленных доставок</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Завершено</div>
+                <div class="card-body">
+                    <h1 class="card-title">{{ completed_deliveries }}</h1>
+                    <p class="card-text">Успешно доставленные грузы</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header text-dark">Активные</div>
+                <div class="card-body text-dark">
+                    <h1 class="card-title">{{ active_deliveries }}</h1>
+                    <p class="card-text">Заказы в обработке или в пути</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информация о пользователе -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            Контактная информация
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Имя пользователя:</strong> {{ client.user.username }}</p>
+                    <p><strong>ФИО:</strong> {{ client.user.last_name }} {{ client.user.first_name }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Email:</strong> {{ client.user.email }}</p>
+                    <p><strong>Телефон:</strong> {{ client.phone }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-muted">
+            <a href="{% url 'client_dashboard' %}" class="btn btn-secondary">Вернуться на дашборд</a>
+            <!-- Здесь можно будет добавить кнопку редактирования профиля в будущем -->
+        </div>
+    </div>
+</div>
+{% endblock %}

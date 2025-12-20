@@ -84,7 +84,7 @@ class Driver(models.Model):
     driving_license = models.CharField(max_length=50)
     experience_years = models.IntegerField()
     status = models.CharField(max_length=50, choices=STATUS_CHOICES)
-    fleet = models.ForeignKey(Fleet, on_delete=models.RESTRICT)
+    fleet = models.ForeignKey(Fleet, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         db_table = 'drivers'

@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Профиль водителя</h2>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3 shadow-sm">
+                <div class="card-header">Всего выполнено</div>
+                <div class="card-body">
+                    <h1 class="card-title">{{ completed_deliveries }}</h1>
+                    <p class="card-text">Заказов доставлено успешно</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-dark bg-light mb-3 shadow-sm border-primary">
+                <div class="card-header">Всего назначено</div>
+                <div class="card-body">
+                    <h1 class="card-title">{{ total_deliveries }}</h1>
+                    <p class="card-text">Общая история заказов</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3 shadow-sm">
+                <div class="card-header">Текущий статус</div>
+                <div class="card-body">
+                    <h3 class="card-title text-uppercase">{{ driver.get_status_display }}</h3>
+                    <p class="card-text">Готовность к работе</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Личные данные -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header fw-bold">
+                    Личные данные
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <small class="text-muted">ФИО</small><br>
+                            {{ driver.last_name }} {{ driver.first_name }} {{ driver.patronymic|default:"" }}
+                        </li>
+                        <li class="list-group-item">
+                            <small class="text-muted">Телефон</small><br>
+                            {{ driver.phone }}
+                        </li>
+                        <li class="list-group-item">
+                            <small class="text-muted">Водительское удостоверение</small><br>
+                            {{ driver.driving_license }}
+                        </li>
+                        <li class="list-group-item">
+                            <small class="text-muted">Стаж вождения</small><br>
+                            {{ driver.experience_years }} лет
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация о транспорте -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header fw-bold">
+                    Транспортное средство
+                </div>
+                <div class="card-body">
+                    {% if driver.fleet %}
+                        <div class="text-center mb-3">
+                            <i class="bi bi-truck" style="font-size: 3rem; color: #0d6efd;"></i>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Модель:</span>
+                                <strong>{{ driver.fleet.model }}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Госномер:</span>
+                                <strong class="text-uppercase border px-2 rounded">{{ driver.fleet.license_plate }}</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Грузоподъемность:</span>
+                                <strong>{{ driver.fleet.capacity }} т</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Статус авто:</span>
+                                <span>{{ driver.fleet.get_status_display }}</span>
+                            </li>
+                        </ul>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <h4 class="text-success">Личный транспорт</h4>
+                            <p class="text-muted">Вы используете собственный автомобиль для работы.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+        <a href="{% url 'driver_dashboard' %}" class="btn btn-secondary">Вернуться на дашборд</a>
+    </div>
+</div>
+{% endblock %}

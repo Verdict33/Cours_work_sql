@@ -1,0 +1,150 @@
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+from .models import Client, Driver, Delivery, Cargo, Route, Fleet
+
+
+class CustomUserCreationForm(UserCreationForm):
+    ROLE_CHOICES = [
+        ('клиент', 'Клиент'),
+        ('водитель', 'Водитель'),
+    ]
+
+    # Переопределяем стандартные поля
+    username = forms.CharField(label='Имя пользователя (Логин)', help_text='Только буквы, цифры и символы @/./+/-/_')
+
+    # Общие поля
+    role = forms.ChoiceField(choices=ROLE_CHOICES, label='Роль')
+    phone = forms.CharField(max_length=20, required=True, label='Телефон')
+    email = forms.EmailField(required=True, label='Email')
+    first_name = forms.CharField(required=True, label='Имя')
+    last_name = forms.CharField(required=True, label='Фамилия')
+    patronymic = forms.CharField(required=False, label='Отчество')
+
+    # Поля водителя
+    driving_license = forms.CharField(required=False, label='Водительские права')
+    experience_years = forms.IntegerField(required=False, label='Стаж вождения (лет)', min_value=0)
+
+    # Новое поле: Выбор автомобиля
+    fleet_choice = forms.ChoiceField(label='Транспортное средство', required=False)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'patronymic', 'phone', 'role',
+                  'driving_license', 'experience_years', 'fleet_choice')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # 1. Формируем список выбора автомобиля
+        # Вариант по умолчанию
+        fleet_choices = [('own', 'Свой автомобиль')]
+
+        # Добавляем свободные машины из базы (статус 'простой')
+        # Если у вас нет машин в базе, список будет содержать только "Свой автомобиль"
+        try:
+            available_fleets = Fleet.objects.filter(status='простой')
+            for car in available_fleets:
+                # Формат: ID, "Volvo (x000xx)"
+                fleet_choices.append((str(car.id), str(car)))
+        except Exception:
+            # На случай, если миграции еще не применены
+            pass
+
+        self.fields['fleet_choice'].choices = fleet_choices
+        # Добавляем класс bootstrap
+        self.fields['fleet_choice'].widget.attrs.update({'class': 'form-select'})
+
+    def clean(self):
+        cleaned_data = super().clean()
+        role = cleaned_data.get('role')
+
+        if role == 'водитель':
+            if not cleaned_data.get('driving_license'):
+                self.add_error('driving_license', 'Для водителя обязательно указать права.')
+            if cleaned_data.get('experience_years') is None:
+                self.add_error('experience_years', 'Для водителя обязательно указать стаж.')
+            # Проверяем, что водитель выбрал хоть что-то в списке машин
+            if not cleaned_data.get('fleet_choice'):
+                self.add_error('fleet_choice', 'Выберите транспортное средство.')
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+
+        if commit:
+            user.save()
+            role = self.cleaned_data['role']
+            phone = self.cleaned_data['phone']
+
+            if role == 'клиент':
+                Client.objects.create(user=user, phone=phone)
+
+            elif role == 'водитель':
+                # Логика привязки авто
+                choice = self.cleaned_data.get('fleet_choice')
+                assigned_fleet = None
+
+                if choice and choice != 'own':
+                    # Если выбран не "свой", ищем машину по ID
+                    try:
+                        assigned_fleet = Fleet.objects.get(id=int(choice))
+                    except Fleet.DoesNotExist:
+                        assigned_fleet = None
+
+                Driver.objects.create(
+                    user=user,
+                    phone=phone,
+                    last_name=self.cleaned_data['last_name'],
+                    first_name=self.cleaned_data['first_name'],
+                    patronymic=self.cleaned_data.get('patronymic', ''),
+                    driving_license=self.cleaned_data.get('driving_license', ''),
+                    experience_years=self.cleaned_data.get('experience_years', 0),
+                    status='свободен',
+                    fleet=assigned_fleet  # Будет None, если "own", или объект Fleet
+                )
+        return user
+
+
+# Остальные формы (DeliveryForm, CargoForm, RouteForm) без изменений
+class DeliveryForm(forms.ModelForm):
+    class Meta:
+        model = Delivery
+        fields = ['delivery_type', 'requested_drivers_count']
+        widgets = {
+            'delivery_type': forms.Select(attrs={'class': 'form-control'}),
+            'requested_drivers_count': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+        }
+
+
+class CargoForm(forms.ModelForm):
+    class Meta:
+        model = Cargo
+        fields = ['name', 'weight']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+
+class RouteForm(forms.ModelForm):
+    class Meta:
+        model = Route
+        fields = [
+            'departure_city', 'departure_street', 'departure_house',
+            'arrival_city', 'arrival_street', 'arrival_house',
+            'distance'
+        ]
+        widgets = {
+            'departure_city': forms.TextInput(attrs={'class': 'form-control'}),
+            'departure_street': forms.TextInput(attrs={'class': 'form-control'}),
+            'departure_house': forms.TextInput(attrs={'class': 'form-control'}),
+            'arrival_city': forms.TextInput(attrs={'class': 'form-control'}),
+            'arrival_street': forms.TextInput(attrs={'class': 'form-control'}),
+            'arrival_house': forms.TextInput(attrs={'class': 'form-control'}),
+            'distance': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }

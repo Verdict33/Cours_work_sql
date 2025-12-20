@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Рабочая панель</h2>
+        <p class="text-muted">Ваши текущие активные заказы</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'available_deliveries' %}" class="btn btn-primary">
+            <i class="bi bi-search"></i> Найти заказы
+        </a>
+        <a href="{% url 'driver_profile' %}" class="btn btn-outline-secondary ms-2">Профиль</a>
+    </div>
+</div>
+
+<!-- Статус водителя -->
+<div class="alert {% if driver.status == 'свободен' %}alert-success{% else %}alert-warning{% endif %} shadow-sm">
+    <strong>Ваш статус:</strong> {{ driver.get_status_display }}
+</div>
+
+{% if current_deliveries %}
+    <h4 class="mb-3">В работе:</h4>
+    <div class="row">
+        {% for delivery in current_deliveries %}
+        <div class="col-md-12 mb-4">
+            <div class="card border-primary shadow h-100">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <span>Заказ #{{ delivery.id }}</span>
+                    <span class="badge bg-light text-dark">{{ delivery.get_delivery_type_display }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Информация о грузе -->
+                        <div class="col-md-4 border-end">
+                            <h5 class="card-title text-primary">Груз</h5>
+                            <p class="card-text">
+                                <strong>Название:</strong> {{ delivery.cargo.name }}<br>
+                                <strong>Вес:</strong> {{ delivery.cargo.weight }} кг
+                            </p>
+                            <h5 class="text-primary mt-3">Клиент</h5>
+                            <p>
+                                {{ delivery.client.user.first_name }} {{ delivery.client.user.last_name }}<br>
+                                <a href="tel:{{ delivery.client.phone }}" class="btn btn-sm btn-outline-success">
+                                    📞 {{ delivery.client.phone }}
+                                </a>
+                            </p>
+                        </div>
+
+                        <!-- Маршрут -->
+                        <div class="col-md-4 border-end">
+                            <h5 class="card-title text-success">Маршрут</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <small class="text-muted">Откуда:</small><br>
+                                    <strong>{{ delivery.route.departure_city }}</strong>, {{ delivery.route.departure_street }}, {{ delivery.route.departure_house }}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-arrow-down"></i>
+                                </li>
+                                <li>
+                                    <small class="text-muted">Куда:</small><br>
+                                    <strong>{{ delivery.route.arrival_city }}</strong>, {{ delivery.route.arrival_street }}, {{ delivery.route.arrival_house }}
+                                </li>
+                            </ul>
+                            {% if delivery.route.distance %}
+                                <p class="mt-2"><span class="badge bg-secondary">{{ delivery.route.distance }} км</span></p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Действия -->
+                        <div class="col-md-4 d-flex flex-column justify-content-center align-items-center">
+                            <div class="d-grid gap-2 w-100">
+                                {% if delivery.status == 'в пути' %}
+                                    <a href="{% url 'complete_delivery' delivery.id %}"
+                                       class="btn btn-success btn-lg mb-2"
+                                       onclick="return confirm('Подтверждаете доставку груза?');">
+                                        ✅ Завершить заказ
+                                    </a>
+                                    <a href="{% url 'cancel_delivery' delivery.id %}"
+                                       class="btn btn-outline-danger"
+                                       onclick="return confirm('Вы уверены, что хотите отказаться от заказа?');">
+                                        ❌ Отказаться
+                                    </a>
+                                {% else %}
+                                    <div class="alert alert-info">Ожидание начала выполнения</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    Заказ создан: {{ delivery.created_at|date:"d.m.Y H:i" }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5 bg-light rounded shadow-sm">
+        <h3>Нет активных заказов</h3>
+        <p class="text-muted">Вы свободны. Перейдите в список доступных заказов, чтобы взять работу.</p>
+        <a href="{% url 'available_deliveries' %}" class="btn btn-lg btn-success mt-3">Найти заказ</a>
+    </div>
+{% endif %}
+{% endblock %}

@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -31,7 +30,8 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('license_plate', models.CharField(max_length=20, unique=True)),
                 ('model', models.CharField(max_length=100)),
-                ('status', models.CharField(choices=[('в эксплуатации', 'В эксплуатации'), ('на ремонте', 'На ремонте'), ('простой', 'Простой')], max_length=50)),
+                ('status', models.CharField(choices=[('в эксплуатации', 'В эксплуатации'), ('на ремонте', 'На ремонте'),
+                                                     ('простой', 'Простой')], max_length=50)),
                 ('capacity', models.DecimalField(decimal_places=2, max_digits=10)),
             ],
             options={
@@ -43,7 +43,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('phone', models.CharField(max_length=20)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('user',
+                 models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'db_table': 'clients',
@@ -59,8 +60,11 @@ class Migration(migrations.Migration):
                 ('phone', models.CharField(max_length=20)),
                 ('driving_license', models.CharField(max_length=50)),
                 ('experience_years', models.IntegerField()),
-                ('status', models.CharField(choices=[('свободен', 'Свободен'), ('в пути', 'В пути'), ('на простое', 'На простое')], max_length=50)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('status', models.CharField(
+                    choices=[('свободен', 'Свободен'), ('в пути', 'В пути'), ('на простое', 'На простое')],
+                    max_length=50)),
+                ('user',
+                 models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
                 ('fleet', models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='transport.fleet')),
             ],
             options={
@@ -71,13 +75,18 @@ class Migration(migrations.Migration):
             name='Delivery',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('оформлен', 'Оформлен'), ('в пути', 'В пути'), ('доставлен', 'Доставлен'), ('отменён', 'Отменён')], max_length=50)),
-                ('delivery_type', models.CharField(choices=[('локальная', 'Локальная'), ('междугородняя', 'Междугородняя')], max_length=50)),
+                ('status', models.CharField(
+                    choices=[('оформлен', 'Оформлен'), ('в пути', 'В пути'), ('доставлен', 'Доставлен'),
+                             ('отменён', 'Отменён')], max_length=50)),
+                ('delivery_type',
+                 models.CharField(choices=[('локальная', 'Локальная'), ('междугородняя', 'Междугородняя')],
+                                  max_length=50)),
                 ('requested_drivers_count', models.IntegerField(default=1)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('cargo', models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='transport.cargo')),
                 ('client', models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='transport.client')),
-                ('driver', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='transport.driver')),
+                ('driver', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                             to='transport.driver')),
             ],
             options={
                 'db_table': 'delivery',
@@ -116,7 +125,9 @@ class Migration(migrations.Migration):
                 ('amount', models.DecimalField(decimal_places=2, max_digits=12)),
                 ('payment_date', models.DateTimeField(auto_now_add=True)),
                 ('method', models.CharField(choices=[('карта', 'Карта'), ('наличные', 'Наличные')], max_length=50)),
-                ('status', models.CharField(choices=[('проведён', 'Проведён'), ('отклонён', 'Отклонён'), ('в обработке', 'В обработке'), ('возврат', 'Возврат')], max_length=50)),
+                ('status', models.CharField(
+                    choices=[('проведён', 'Проведён'), ('отклонён', 'Отклонён'), ('в обработке', 'В обработке'),
+                             ('возврат', 'Возврат')], max_length=50)),
                 ('comment', models.TextField(blank=True, null=True)),
                 ('delivery', models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='transport.delivery')),
             ],
@@ -136,7 +147,8 @@ class Migration(migrations.Migration):
                 ('arrival_house', models.CharField(max_length=20)),
                 ('distance', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
                 ('estimated_time', models.DurationField(blank=True, null=True)),
-                ('delivery', models.OneToOneField(on_delete=django.db.models.deletion.RESTRICT, to='transport.delivery')),
+                ('delivery',
+                 models.OneToOneField(on_delete=django.db.models.deletion.RESTRICT, to='transport.delivery')),
             ],
             options={
                 'db_table': 'routes',
@@ -146,8 +158,11 @@ class Migration(migrations.Migration):
             name='UserProfile',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('role', models.CharField(choices=[('водитель', 'Водитель'), ('клиент', 'Клиент'), ('администратор', 'Администратор')], max_length=50)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('role', models.CharField(
+                    choices=[('водитель', 'Водитель'), ('клиент', 'Клиент'), ('администратор', 'Администратор')],
+                    max_length=50)),
+                ('user',
+                 models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'db_table': 'user_profiles',
@@ -158,7 +173,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('service_date', models.DateTimeField()),
-                ('status', models.CharField(choices=[('запланировано', 'Запланировано'), ('в процессе', 'В процессе'), ('завершено', 'Завершено'), ('отменено', 'Отменено')], max_length=50)),
+                ('status', models.CharField(choices=[('запланировано', 'Запланировано'), ('в процессе', 'В процессе'),
+                                                     ('завершено', 'Завершено'), ('отменено', 'Отменено')],
+                                            max_length=50)),
                 ('notes', models.TextField(blank=True, null=True)),
                 ('fleet', models.ForeignKey(on_delete=django.db.models.deletion.RESTRICT, to='transport.fleet')),
             ],

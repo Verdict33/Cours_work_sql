@@ -1,0 +1,28 @@
+<!-- transport/templates/home.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="text-center">
+            <h1>Добро пожаловать в транспортную компанию!</h1>
+            <p class="lead">Вы вошли как {{ user.username }}</p>
+
+            {% if user_type == 'client' %}
+            <p>Вы авторизованы как <strong>клиент</strong></p>
+            <a href="{% url 'client_dashboard' %}" class="btn btn-primary btn-lg">Перейти в личный кабинет</a>
+            {% elif user_type == 'driver' %}
+            <p>Вы авторизованы как <strong>водитель</strong></p>
+            <a href="{% url 'driver_dashboard' %}" class="btn btn-primary btn-lg">Перейти в личный кабинет</a>
+            {% elif user_type == 'admin' %}
+            <p>Вы авторизованы как <strong>администратор</strong></p>
+            <a href="/admin/" class="btn btn-primary btn-lg">Перейти в админ-панель</a>
+            {% endif %}
+
+            <div class="mt-4">
+                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-secondary">Выйти</button>
+                </form>
+            </div>        </div>    </div></div>
+{% endblock %}

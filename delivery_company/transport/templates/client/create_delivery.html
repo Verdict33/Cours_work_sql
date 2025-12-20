@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Оформление новой доставки</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Секция 1: Информация о грузе и типе доставки -->
+                    <h5 class="border-bottom pb-2 mb-3">Детали груза</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Название груза</label>
+                            {{ cargo_form.name }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Вес (кг)</label>
+                            {{ cargo_form.weight }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Тип доставки</label>
+                            {{ delivery_form.delivery_type }}
+                        </div>
+                    </div>
+
+                    <!-- Секция 2: Маршрут -->
+                    <h5 class="border-bottom pb-2 mb-3">Маршрут</h5>
+
+                    <div class="row">
+                        <!-- Откуда -->
+                        <div class="col-md-6 border-end">
+                            <h6 class="text-primary">Точка отправления</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Город</label>
+                                {{ route_form.departure_city }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Улица</label>
+                                {{ route_form.departure_street }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Дом</label>
+                                {{ route_form.departure_house }}
+                            </div>
+                        </div>
+
+                        <!-- Куда -->
+                        <div class="col-md-6">
+                            <h6 class="text-success">Точка прибытия</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Город</label>
+                                {{ route_form.arrival_city }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Улица</label>
+                                {{ route_form.arrival_street }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Дом</label>
+                                {{ route_form.arrival_house }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Секция 3: Дополнительно -->
+                    <div class="row mt-3 bg-light p-3 rounded">
+                        <div class="col-md-6">
+                            <label class="form-label">Расстояние (км)</label>
+                            {{ route_form.distance }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Требуемое кол-во водителей</label>
+                            {{ delivery_form.requested_drivers_count }}
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">Оформить заказ</button>
+                        <a href="{% url 'client_dashboard' %}" class="btn btn-outline-secondary">Вернуться назад</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

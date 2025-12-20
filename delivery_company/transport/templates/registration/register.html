@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Регистрация нового пользователя</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" id="registrationForm">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <!-- Контейнер поля -->
+                    <div class="mb-3"
+                         id="container_{{ field.name }}"
+                         {% if field.name in 'driving_license experience_years fleet_choice' %}style="display: none;"{% endif %}>
+
+                        <label for="{{ field.id_for_label }}" class="form-label fw-bold">
+                            {{ field.label }}
+                        </label>
+
+                        <div class="input-group">
+                            {{ field }}
+                        </div>
+
+                        {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+
+                        {% for error in field.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">Зарегистрироваться</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Базовая стилизация полей */
+    input[type="text"], input[type="password"], input[type="email"], input[type="number"], select {
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleSelect = document.querySelector('#id_role');
+
+        // Список полей, которые нужно показывать только водителю
+        const driverFieldsIds = [
+            'container_driving_license',
+            'container_experience_years',
+            'container_fleet_choice'
+        ];
+
+        function toggleDriverFields() {
+            const isDriver = roleSelect.value === 'водитель';
+
+            driverFieldsIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.display = isDriver ? 'block' : 'none';
+                }
+            });
+        }
+
+        // Слушаем изменения
+        roleSelect.addEventListener('change', toggleDriverFields);
+
+        // Инициализация при загрузке (на случай ошибок валидации)
+        toggleDriverFields();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Доступные заказы</h2>
+    <a href="{% url 'driver_dashboard' %}" class="btn btn-outline-secondary">Назад в дашборд</a>
+</div>
+
+{% if driver.status != 'свободен' %}
+    <div class="alert alert-warning border-warning">
+        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Внимание!</h5>
+        <p class="mb-0">Вы не можете брать новые заказы, пока не завершите текущую доставку. Ваш статус: <strong>{{ driver.get_status_display }}</strong>.</p>
+    </div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if available_deliveries %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Груз</th>
+                        <th>Маршрут</th>
+                        <th>Тип</th>
+                        <th>Расстояние</th>
+                        <th>Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for delivery in available_deliveries %}
+                    <tr>
+                        <td><strong>{{ delivery.id }}</strong></td>
+                        <td>
+                            {{ delivery.cargo.name }}<br>
+                            <span class="badge bg-secondary">{{ delivery.cargo.weight }} кг</span>
+                        </td>
+                        <td>
+                            <div style="max-width: 300px;">
+                                <small class="text-muted">От:</small> {{ delivery.route.departure_city }}<br>
+                                <small class="text-muted">До:</small> <strong>{{ delivery.route.arrival_city }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ delivery.get_delivery_type_display }}</td>
+                        <td>
+                            {% if delivery.route.distance %}
+                                {{ delivery.route.distance }} км
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if driver.status == 'свободен' %}
+                                <a href="{% url 'accept_delivery' delivery.id %}" class="btn btn-success btn-sm">
+                                    Взять в работу
+                                </a>
+                            {% else %}
+                                <button class="btn btn-secondary btn-sm" disabled title="Сначала завершите текущий заказ">
+                                    Недоступно
+                                </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="text-center py-4">
+                <h4>Нет доступных заказов</h4>
+                <p class="text-muted">На данный момент все заказы распределены или отсутствуют.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
