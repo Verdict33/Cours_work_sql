@@ -21,13 +21,18 @@ class UserProfile(models.Model):
 
 class Client(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # Добавляем новые поля
+    last_name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=100)
+    patronymic = models.CharField(max_length=100, blank=True, null=True)
+
     phone = models.CharField(max_length=20)
 
     class Meta:
         db_table = 'clients'
 
     def __str__(self):
-        return f"Клиент: {self.user.username}"
+        return f"Клиент: {self.last_name} {self.first_name}"
 
 
 class Fleet(models.Model):
@@ -139,7 +144,6 @@ class Route(models.Model):
     arrival_street = models.CharField(max_length=100)
     arrival_house = models.CharField(max_length=20)
     distance = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    estimated_time = models.DurationField(null=True, blank=True)
 
     class Meta:
         db_table = 'routes'
@@ -167,16 +171,10 @@ class Payment(models.Model):
         ('наличные', 'Наличные'),
     ]
 
-    STATUS_CHOICES = [
-        ('проведён', 'Проведён'),
-        ('отклонён', 'Отклонён'),
-    ]
-
     delivery = models.ForeignKey(Delivery, on_delete=models.RESTRICT)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     payment_date = models.DateTimeField(auto_now_add=True)
     method = models.CharField(max_length=50, choices=METHOD_CHOICES)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES)
 
     class Meta:
         db_table = 'payments'

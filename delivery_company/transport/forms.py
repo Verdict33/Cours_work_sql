@@ -80,31 +80,44 @@ class CustomUserCreationForm(UserCreationForm):
             role = self.cleaned_data['role']
             phone = self.cleaned_data['phone']
 
+            # Получаем общие данные (они теперь есть в форме для всех)
+            patronymic = self.cleaned_data.get('patronymic', '')
+            last_name = self.cleaned_data['last_name']
+            first_name = self.cleaned_data['first_name']
+
             if role == 'клиент':
-                Client.objects.create(user=user, phone=phone)
+                Client.objects.create(
+                    user=user,
+                    phone=phone,
+                    # Добавляем сохранение полей в модель Client
+                    last_name=last_name,
+                    first_name=first_name,
+                    patronymic=patronymic
+                )
 
             elif role == 'водитель':
-                # Логика привязки авто
+                # ... код для водителя остается прежним ...
+                # (код с fleet_choice и созданием Driver)
+                # ...
                 choice = self.cleaned_data.get('fleet_choice')
                 assigned_fleet = None
 
                 if choice and choice != 'own':
-                    # Если выбран не "свой", ищем машину по ID
                     try:
                         assigned_fleet = Fleet.objects.get(id=int(choice))
                     except Fleet.DoesNotExist:
-                        assigned_fleet = 'нет информации'
+                        assigned_fleet = None
 
                 Driver.objects.create(
                     user=user,
                     phone=phone,
-                    last_name=self.cleaned_data['last_name'],
-                    first_name=self.cleaned_data['first_name'],
-                    patronymic=self.cleaned_data.get('patronymic', ''),
+                    last_name=last_name,
+                    first_name=first_name,
+                    patronymic=patronymic,
                     driving_license=self.cleaned_data.get('driving_license', ''),
                     experience_years=self.cleaned_data.get('experience_years', 0),
                     status='свободен',
-                    fleet=assigned_fleet  # Будет None, если "own", или объект Fleet
+                    fleet=assigned_fleet
                 )
         return user
 

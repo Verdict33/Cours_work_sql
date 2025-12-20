@@ -70,26 +70,46 @@ def create_delivery(request):
         return HttpResponseForbidden("Доступ запрещен")
 
     client = request.user.client
+    calculated_price = None  # Переменная для цены
 
     if request.method == 'POST':
         delivery_form = DeliveryForm(request.POST)
         cargo_form = CargoForm(request.POST)
         route_form = RouteForm(request.POST)
 
+        # Получаем действие (какая кнопка нажата)
+        action = request.POST.get('action')
+
         if all([delivery_form.is_valid(), cargo_form.is_valid(), route_form.is_valid()]):
-            cargo = cargo_form.save()
+            # 1. Логика расчета цены (для отображения)
+            weight = cargo_form.cleaned_data.get('weight', 0)
+            distance = route_form.cleaned_data.get('distance', 0)
 
-            delivery = delivery_form.save(commit=False)
-            delivery.client = client
-            delivery.cargo = cargo
-            delivery.status = 'оформлен'
-            delivery.save()
+            # Формула: 50 руб/км + 10 руб/кг (минимум 500)
+            price = (distance * Decimal('50.00')) + (weight * Decimal('10.00'))
+            if price < 500:
+                price = Decimal('500.00')
 
-            route = route_form.save(commit=False)
-            route.delivery = delivery
-            route.save()
+            calculated_price = price
 
-            return redirect('client_dashboard')
+            # 2. Если нажата кнопка "Подтвердить" (create), сохраняем в БД
+            if action == 'create':
+                cargo = cargo_form.save()
+
+                delivery = delivery_form.save(commit=False)
+                delivery.client = client
+                delivery.cargo = cargo
+                delivery.status = 'оформлен'
+                delivery.save()
+
+                route = route_form.save(commit=False)
+                route.delivery = delivery
+                route.save()
+
+                return redirect('client_dashboard')
+
+            # Если action == 'calculate', код просто пойдет дальше и отобразит страницу с calculated_price
+
     else:
         delivery_form = DeliveryForm()
         cargo_form = CargoForm()
@@ -99,6 +119,7 @@ def create_delivery(request):
         'delivery_form': delivery_form,
         'cargo_form': cargo_form,
         'route_form': route_form,
+        'calculated_price': calculated_price,  # Передаем цену в шаблон
     }
     return render(request, 'client/create_delivery.html', context)
 

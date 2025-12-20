@@ -11,7 +11,7 @@
                 <form method="post">
                     {% csrf_token %}
 
-                    <!-- Секция 1: Информация о грузе и типе доставки -->
+                    <!-- Секция 1: Груз -->
                     <h5 class="border-bottom pb-2 mb-3">Детали груза</h5>
                     <div class="row mb-4">
                         <div class="col-md-6">
@@ -30,9 +30,7 @@
 
                     <!-- Секция 2: Маршрут -->
                     <h5 class="border-bottom pb-2 mb-3">Маршрут</h5>
-
                     <div class="row">
-                        <!-- Откуда -->
                         <div class="col-md-6 border-end">
                             <h6 class="text-primary">Точка отправления</h6>
                             <div class="mb-3">
@@ -49,7 +47,6 @@
                             </div>
                         </div>
 
-                        <!-- Куда -->
                         <div class="col-md-6">
                             <h6 class="text-success">Точка прибытия</h6>
                             <div class="mb-3">
@@ -67,18 +64,41 @@
                         </div>
                     </div>
 
-                    <!-- Секция 3: Дополнительно -->
-                    <div class="row mt-3 bg-light p-3 rounded">
-                        <div class="col-md-12">
+                    <!-- Секция 3: Расчет -->
+                    <div class="row mt-3 bg-light p-3 rounded align-items-center">
+                        <div class="col-md-6">
                             <label class="form-label">Расстояние (км)</label>
                             {{ route_form.distance }}
+                            <small class="text-muted">Введите расстояние для расчета</small>
                         </div>
-                        <!-- Поле выбора количества водителей удалено -->
+
+                        <div class="col-md-6 text-end">
+                            {% if calculated_price %}
+                                <h5 class="mb-0">Итоговая стоимость:</h5>
+                                <h2 class="text-success fw-bold">{{ calculated_price }} ₽</h2>
+                            {% endif %}
+                        </div>
                     </div>
 
+                    <!-- Кнопки управления -->
                     <div class="d-grid gap-2 mt-4">
-                        <button type="submit" class="btn btn-success btn-lg">Оформить заказ</button>
-                        <a href="{% url 'client_dashboard' %}" class="btn btn-outline-secondary">Вернуться назад</a>
+                        {% if calculated_price %}
+                            <!-- Кнопка подтверждения -->
+                            <button type="submit" name="action" value="create" class="btn btn-success btn-lg">
+                                Подтвердить и создать заказ
+                            </button>
+                            <!-- Кнопка пересчета -->
+                            <button type="submit" name="action" value="calculate" class="btn btn-outline-primary">
+                                Пересчитать
+                            </button>
+                        {% else %}
+                            <!-- Кнопка только для расчета -->
+                            <button type="submit" name="action" value="calculate" class="btn btn-primary btn-lg">
+                                Рассчитать стоимость
+                            </button>
+                        {% endif %}
+
+                        <a href="{% url 'client_dashboard' %}" class="btn btn-outline-secondary">Отмена</a>
                     </div>
                 </form>
             </div>

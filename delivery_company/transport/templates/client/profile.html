@@ -41,16 +41,23 @@
             Контактная информация
         </div>
         <div class="card-body">
+
             <div class="row">
                 <div class="col-md-6">
                     <p><strong>Имя пользователя:</strong> {{ client.user.username }}</p>
-                    <p><strong>ФИО:</strong> {{ client.user.last_name }} {{ client.user.first_name }}</p>
+
+                    <!-- ИЗМЕНЕНИЕ ЗДЕСЬ: берем данные из модели Client -->
+                    <p><strong>ФИО:</strong>
+                        {{ client.last_name }} {{ client.first_name }} {{ client.patronymic|default:"" }}
+                    </p>
                 </div>
                 <div class="col-md-6">
                     <p><strong>Email:</strong> {{ client.user.email }}</p>
                     <p><strong>Телефон:</strong> {{ client.phone }}</p>
                 </div>
             </div>
+
+
         </div>
         <div class="card-footer text-muted">
             <a href="{% url 'client_dashboard' %}" class="btn btn-secondary">Вернуться к заказам</a>
