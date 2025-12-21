@@ -1,6 +1,4 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
 from .models import *
 
 
@@ -31,9 +29,15 @@ class DeliveryAdmin(admin.ModelAdmin):
     search_fields = ('client__user__username', 'driver__user__username')
 
 
+@admin.register(Refueling)
+class RefuelingAdmin(admin.ModelAdmin):
+    list_display = ('fleet', 'driver', 'fuel_type', 'liters', 'total_cost', 'date')
+    list_filter = ('fuel_type', 'date')
+    search_fields = ('fleet__license_plate', 'driver__last_name')
+    readonly_fields = ('total_cost', 'date') # Чтобы дату и сумму считал сам скрипт
+
 # Регистрация остальных моделей
 admin.site.register(Cargo)
 admin.site.register(Route)
-admin.site.register(VehicleMaintenance)
 admin.site.register(Feedback)
 admin.site.register(Payment)

@@ -126,9 +126,13 @@
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body text-start">
-                                                        <div class="alert alert-info">
-                                                            Стоимость рассчитана автоматически.
+
+                                                        <!-- ВЫВОД СТОИМОСТИ -->
+                                                        <div class="text-center mb-4">
+                                                            <h4 class="text-muted">К оплате:</h4>
+                                                            <h1 class="text-success fw-bold display-5">{{ delivery.get_price|floatformat:2 }} ₽</h1>
                                                         </div>
+
                                                         <div class="mb-3">
                                                             <label class="form-label">Выберите способ оплаты:</label>
                                                             <select name="method" class="form-select">

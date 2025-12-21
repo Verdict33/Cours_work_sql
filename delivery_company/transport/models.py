@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from decimal import Decimal
 
 
 class UserProfile(models.Model):
@@ -51,26 +52,6 @@ class Fleet(models.Model):
 
     def __str__(self):
         return f"{self.model} ({self.license_plate})"
-
-
-class VehicleMaintenance(models.Model):
-    STATUS_CHOICES = [
-        ('запланировано', 'Запланировано'),
-        ('в процессе', 'В процессе'),
-        ('завершено', 'Завершено'),
-        ('отменено', 'Отменено'),
-    ]
-
-    fleet = models.ForeignKey(Fleet, on_delete=models.RESTRICT)
-    service_date = models.DateTimeField()
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES)
-    notes = models.TextField(blank=True, null=True)
-
-    class Meta:
-        db_table = 'vehicle_maintenance'
-
-    def __str__(self):
-        return f"ТО {self.fleet.license_plate} - {self.service_date}"
 
 
 class Driver(models.Model):
@@ -134,6 +115,22 @@ class Delivery(models.Model):
     def __str__(self):
         return f"Доставка #{self.id} - {self.status}"
 
+    def get_price(self):
+        distance = self.route.distance if hasattr(self, 'route') and self.route.distance else 0
+        weight = self.cargo.weight if self.cargo else 0
+
+        # Преобразуем в Decimal для точных расчетов
+        dist_dec = Decimal(str(distance))
+        weight_dec = Decimal(str(weight))
+
+        # Формула: 50 руб/км + 10 руб/кг
+        price = (dist_dec * Decimal('50.00')) + (weight_dec * Decimal('10.00'))
+
+        # Минимум 500 руб
+        if price < 500:
+            return Decimal('500.00')
+        return price
+
 
 class Route(models.Model):
     delivery = models.OneToOneField(Delivery, on_delete=models.RESTRICT)
@@ -181,3 +178,34 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Платёж {self.amount} - {self.status}"
+
+
+class Refueling(models.Model):
+    FUEL_TYPE_CHOICES = [
+        ('АИ-92', 'АИ-92'),
+        ('АИ-95', 'АИ-95'),
+        ('ДТ', 'Дизель'),
+        ('Газ', 'Газ'),
+    ]
+
+    fleet = models.ForeignKey(Fleet, on_delete=models.CASCADE, verbose_name="Автомобиль")
+    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Водитель")
+    date = models.DateTimeField(auto_now_add=True, verbose_name="Дата заправки")
+    fuel_type = models.CharField(max_length=20, choices=FUEL_TYPE_CHOICES, verbose_name="Вид топлива")
+    liters = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Литры")
+    cost_per_liter = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="Цена за литр")
+    total_cost = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Общая стоимость")
+
+    class Meta:
+        db_table = 'refueling'
+        verbose_name = 'Заправка'
+        verbose_name_plural = 'Заправки'
+
+    def save(self, *args, **kwargs):
+        # Автоматический расчет общей стоимости
+        if self.liters and self.cost_per_liter:
+            self.total_cost = self.liters * self.cost_per_liter
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.fleet.model} - {self.liters}л ({self.date.strftime('%d.%m.%Y')})"

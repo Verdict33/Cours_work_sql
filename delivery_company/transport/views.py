@@ -319,19 +319,11 @@ def make_payment(request, delivery_id):
     client = request.user.client
     delivery = get_object_or_404(Delivery, id=delivery_id, client=client, status='доставлен')
 
-    # Проверка: если уже оплачено, не даем платить второй раз
     if delivery.payment_set.exists():
         return redirect('client_dashboard')
 
-    # Расчет стоимости (Примерная формула: 50 руб/км + 10 руб/кг)
-    distance = delivery.route.distance if delivery.route.distance else 0
-    weight = delivery.cargo.weight if delivery.cargo.weight else 0
-    # Используем Decimal для точности денег
-    calculated_amount = (distance * Decimal('50.00')) + (weight * Decimal('10.00'))
-
-    # Минимальная стоимость доставки 500р
-    if calculated_amount < 500:
-        calculated_amount = Decimal('500.00')
+    # ИСПОЛЬЗУЕМ НОВЫЙ МЕТОД МОДЕЛИ
+    calculated_amount = delivery.get_price()
 
     if request.method == 'POST':
         form = PaymentForm(request.POST)
@@ -339,9 +331,8 @@ def make_payment(request, delivery_id):
             payment = form.save(commit=False)
             payment.delivery = delivery
             payment.amount = calculated_amount
-            payment.status = 'проведён'  # Сразу считаем успешным для упрощения
+            payment.status = 'проведён'
             payment.save()
             return redirect('client_dashboard')
 
-    # Если GET запрос (или ошибка), возвращаем на дашборд
     return redirect('client_dashboard')
