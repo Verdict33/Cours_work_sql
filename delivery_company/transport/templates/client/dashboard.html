@@ -1,12 +1,23 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
 <div class="row mb-4">
-    <div class="col-md-8">
+    <div class="col-md-7">
         <h2>Мои доставки</h2>
         <p class="text-muted">История ваших заказов и их текущий статус</p>
     </div>
-    <div class="col-md-4 text-end">
+    <div class="col-md-5 text-end">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download"></i> Скачать отчет
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'export_user_deliveries' %}?format=csv">Формат CSV</a></li>
+                <li><a class="dropdown-item" href="{% url 'export_user_deliveries' %}?format=json">Формат JSON</a></li>
+            </ul>
+        </div>
+
         <a href="{% url 'create_delivery' %}" class="btn btn-success">
             <i class="bi bi-plus-circle"></i> + Создать заказ
         </a>

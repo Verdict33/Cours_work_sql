@@ -22,7 +22,6 @@ class UserProfile(models.Model):
 
 class Client(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    # Добавляем новые поля
     last_name = models.CharField(max_length=100)
     first_name = models.CharField(max_length=100)
     patronymic = models.CharField(max_length=100, blank=True, null=True)
@@ -38,8 +37,8 @@ class Client(models.Model):
 
 class Fleet(models.Model):
     STATUS_CHOICES = [
-        ('используется', 'Используется'),  # Было "в эксплуатации"
-        ('на стоянке', 'На стоянке'),  # Было "простой"
+        ('используется', 'Используется'),
+        ('на стоянке', 'На стоянке'),
     ]
 
     license_plate = models.CharField(max_length=20, unique=True)
@@ -119,14 +118,11 @@ class Delivery(models.Model):
         distance = self.route.distance if hasattr(self, 'route') and self.route.distance else 0
         weight = self.cargo.weight if self.cargo else 0
 
-        # Преобразуем в Decimal для точных расчетов
         dist_dec = Decimal(str(distance))
         weight_dec = Decimal(str(weight))
 
-        # Формула: 50 руб/км + 10 руб/кг
         price = (dist_dec * Decimal('50.00')) + (weight_dec * Decimal('10.00'))
 
-        # Минимум 500 руб
         if price < 500:
             return Decimal('500.00')
         return price
@@ -202,7 +198,6 @@ class Refueling(models.Model):
         verbose_name_plural = 'Заправки'
 
     def save(self, *args, **kwargs):
-        # Автоматический расчет общей стоимости
         if self.liters and self.cost_per_liter:
             self.total_cost = self.liters * self.cost_per_liter
         super().save(*args, **kwargs)

@@ -25,7 +25,7 @@
                         <th>Маршрут</th>
                         <th>Тип</th>
                         <th>Расстояние</th>
-                        <th>Стоимость</th> <!-- Новая колонка -->
+                        <th>Стоимость</th>
                         <th>Действие</th>
                     </tr>
                 </thead>
@@ -40,7 +40,6 @@
                         <td>
                             <div style="max-width: 300px;">
                                 <small class="text-muted">От:</small> {{ delivery.route.departure_city }}<br>
-                                <!-- Убрали теги <strong> вокруг города прибытия -->
                                 <small class="text-muted">До:</small> {{ delivery.route.arrival_city }}
                             </div>
                         </td>

@@ -4,6 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from .forms import *
 from decimal import Decimal
+import csv
+import json
+from django.http import HttpResponse, JsonResponse
 
 
 def register_view(request):
@@ -16,7 +19,6 @@ def register_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                # После регистрации сразу перенаправляем в нужный дашборд
                 return home(request)
     else:
         form = CustomUserCreationForm()
@@ -25,20 +27,17 @@ def register_view(request):
 
 def home(request):
     if request.user.is_authenticated:
-        # Сразу перенаправляем в соответствующий дашборд
         if hasattr(request.user, 'client'):
             return redirect('client_dashboard')
         elif hasattr(request.user, 'driver'):
             return redirect('driver_dashboard')
         elif request.user.is_staff:
             return redirect('/admin/')
-            # Если не авторизован - показываем логин
     return redirect('login')
 
 
 @login_required
 def dashboard(request):
-    # А эту функцию используем для перенаправления по ролям
     if hasattr(request.user, 'client'):
         return redirect('client_dashboard')
     elif hasattr(request.user, 'driver'):
@@ -48,7 +47,6 @@ def dashboard(request):
     return redirect('home')
 
 
-# Клиентские представления
 @login_required
 def client_dashboard(request):
     if not hasattr(request.user, 'client'):
@@ -70,29 +68,25 @@ def create_delivery(request):
         return HttpResponseForbidden("Доступ запрещен")
 
     client = request.user.client
-    calculated_price = None  # Переменная для цены
+    calculated_price = None
 
     if request.method == 'POST':
         delivery_form = DeliveryForm(request.POST)
         cargo_form = CargoForm(request.POST)
         route_form = RouteForm(request.POST)
 
-        # Получаем действие (какая кнопка нажата)
         action = request.POST.get('action')
 
         if all([delivery_form.is_valid(), cargo_form.is_valid(), route_form.is_valid()]):
-            # 1. Логика расчета цены (для отображения)
             weight = cargo_form.cleaned_data.get('weight', 0)
             distance = route_form.cleaned_data.get('distance', 0)
 
-            # Формула: 50 руб/км + 10 руб/кг (минимум 500)
             price = (distance * Decimal('50.00')) + (weight * Decimal('10.00'))
             if price < 500:
                 price = Decimal('500.00')
 
             calculated_price = price
 
-            # 2. Если нажата кнопка "Подтвердить" (create), сохраняем в БД
             if action == 'create':
                 cargo = cargo_form.save()
 
@@ -108,8 +102,6 @@ def create_delivery(request):
 
                 return redirect('client_dashboard')
 
-            # Если action == 'calculate', код просто пойдет дальше и отобразит страницу с calculated_price
-
     else:
         delivery_form = DeliveryForm()
         cargo_form = CargoForm()
@@ -119,7 +111,7 @@ def create_delivery(request):
         'delivery_form': delivery_form,
         'cargo_form': cargo_form,
         'route_form': route_form,
-        'calculated_price': calculated_price,  # Передаем цену в шаблон
+        'calculated_price': calculated_price,
     }
     return render(request, 'client/create_delivery.html', context)
 
@@ -158,7 +150,6 @@ def client_profile(request):
     return render(request, 'client/profile.html', context)
 
 
-# Водительские представления
 @login_required
 def driver_dashboard(request):
     if not hasattr(request.user, 'driver'):
@@ -201,16 +192,13 @@ def accept_delivery(request, delivery_id):
     delivery = get_object_or_404(Delivery, id=delivery_id, status='оформлен', driver__isnull=True)
 
     if driver.status == 'свободен':
-        # 1. Обновляем доставку
         delivery.driver = driver
         delivery.status = 'в пути'
         delivery.save()
 
-        # 2. Обновляем водителя
         driver.status = 'в пути'
         driver.save()
 
-        # 3. Обновляем статус машины (если она есть)
         if driver.fleet:
             driver.fleet.status = 'используется'
             driver.fleet.save()
@@ -226,16 +214,13 @@ def cancel_delivery(request, delivery_id):
     driver = request.user.driver
     delivery = get_object_or_404(Delivery, id=delivery_id, driver=driver, status='в пути')
 
-    # 1. Сбрасываем доставку
     delivery.driver = None
     delivery.status = 'оформлен'
     delivery.save()
 
-    # 2. Освобождаем водителя
     driver.status = 'свободен'
     driver.save()
 
-    # 3. Освобождаем машину (возвращаем на стоянку)
     if driver.fleet:
         driver.fleet.status = 'на стоянке'
         driver.fleet.save()
@@ -251,15 +236,12 @@ def complete_delivery(request, delivery_id):
     driver = request.user.driver
     delivery = get_object_or_404(Delivery, id=delivery_id, driver=driver, status='в пути')
 
-    # 1. Завершаем доставку
     delivery.status = 'доставлен'
     delivery.save()
 
-    # 2. Освобождаем водителя
     driver.status = 'свободен'
     driver.save()
 
-    # 3. Освобождаем машину (возвращаем на стоянку)
     if driver.fleet:
         driver.fleet.status = 'на стоянке'
         driver.fleet.save()
@@ -292,15 +274,12 @@ def leave_feedback(request, delivery_id):
         return HttpResponseForbidden("Доступ запрещен")
 
     client = request.user.client
-    # Получаем доставку, которая завершена и принадлежит этому клиенту
     delivery = get_object_or_404(Delivery, id=delivery_id, client=client, status='доставлен')
 
     if request.method == 'POST':
         form = FeedbackForm(request.POST)
         if form.is_valid():
-            # Проверяем, нет ли уже отзыва на эту доставку
             if Feedback.objects.filter(delivery=delivery).exists():
-                # Если отзыв уже есть, просто обновляем страницу (или можно вывести сообщение)
                 return redirect('client_dashboard')
 
             feedback = form.save(commit=False)
@@ -322,7 +301,6 @@ def make_payment(request, delivery_id):
     if delivery.payment_set.exists():
         return redirect('client_dashboard')
 
-    # ИСПОЛЬЗУЕМ НОВЫЙ МЕТОД МОДЕЛИ
     calculated_amount = delivery.get_price()
 
     if request.method == 'POST':
@@ -345,9 +323,7 @@ def add_refueling(request):
 
     driver = request.user.driver
 
-    # Проверка: есть ли у водителя служебное авто
     if not driver.fleet:
-        # Можно вывести ошибку или просто перенаправить
         return render(request, 'driver/error_no_fleet.html', {
             'message': 'Заправка доступна только для служебных автомобилей парка.'
         })
@@ -358,10 +334,64 @@ def add_refueling(request):
             refueling = form.save(commit=False)
             refueling.driver = driver
             refueling.fleet = driver.fleet
-            # total_cost посчитается автоматически в методе save() модели
             refueling.save()
             return redirect('driver_dashboard')
     else:
         form = RefuelingForm()
 
     return render(request, 'driver/add_refueling.html', {'form': form})
+
+
+@login_required
+def export_user_deliveries(request):
+    if not hasattr(request.user, 'client'):
+        return HttpResponseForbidden("Доступ запрещен")
+
+    client = request.user.client
+    deliveries = Delivery.objects.filter(client=client).order_by('-created_at')
+
+    export_format = request.GET.get('format', 'csv')
+
+    if export_format == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response.write(u'\ufeff'.encode('utf8'))
+        response['Content-Disposition'] = 'attachment; filename="my_deliveries.csv"'
+
+        writer = csv.writer(response, delimiter=';')
+
+        writer.writerow(
+            ['ID заказа', 'Груз', 'Вес (кг)', 'Откуда', 'Куда', 'Статус', 'Стоимость (руб)', 'Дата создания'])
+
+        for d in deliveries:
+            writer.writerow([
+                d.id,
+                d.cargo.name,
+                d.cargo.weight,
+                d.route.departure_city,
+                d.route.arrival_city,
+                d.get_status_display(),
+                d.get_price(),
+                d.created_at.strftime('%d.%m.%Y %H:%M')
+            ])
+        return response
+
+    elif export_format == 'json':
+        data = []
+        for d in deliveries:
+            data.append({
+                'id': d.id,
+                'cargo': d.cargo.name,
+                'weight': float(d.cargo.weight),
+                'departure': d.route.departure_city,
+                'arrival': d.route.arrival_city,
+                'status': d.get_status_display(),
+                'price': float(d.get_price()),
+                'created_at': d.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            })
+
+        response = JsonResponse(data, safe=False, json_dumps_params={'ensure_ascii': False, 'indent': 4})
+        response['Content-Disposition'] = 'attachment; filename="my_deliveries.json"'
+        return response
+
+    else:
+        return HttpResponse("Неверный формат", status=400)

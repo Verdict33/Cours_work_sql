@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
 
@@ -17,6 +17,7 @@ urlpatterns = [
     path('client/profile/', views.client_profile, name='client_profile'),
     path('client/feedback/<int:delivery_id>/', views.leave_feedback, name='leave_feedback'),
     path('client/payment/<int:delivery_id>/', views.make_payment, name='make_payment'),
+    path('client/export/', views.export_user_deliveries, name='export_user_deliveries'),
 
     # Водительские URL
     path('driver/dashboard/', views.driver_dashboard, name='driver_dashboard'),

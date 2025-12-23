@@ -9,10 +9,8 @@ class CustomUserCreationForm(UserCreationForm):
         ('водитель', 'Водитель'),
     ]
 
-    # Переопределяем стандартные поля
     username = forms.CharField(label='Имя пользователя (Логин)', help_text='Только буквы, цифры и символы @/./+/-/_')
 
-    # Общие поля
     role = forms.ChoiceField(choices=ROLE_CHOICES, label='Роль')
     phone = forms.CharField(max_length=20, required=True, label='Телефон')
     email = forms.EmailField(required=True, label='Email')
@@ -20,11 +18,9 @@ class CustomUserCreationForm(UserCreationForm):
     last_name = forms.CharField(required=True, label='Фамилия')
     patronymic = forms.CharField(required=False, label='Отчество')
 
-    # Поля водителя
     driving_license = forms.CharField(required=False, label='Водительские права')
     experience_years = forms.IntegerField(required=False, label='Стаж вождения (лет)', min_value=0)
 
-    # Новое поле: Выбор автомобиля
     fleet_choice = forms.ChoiceField(label='Транспортное средство', required=False)
 
     class Meta:
@@ -35,11 +31,9 @@ class CustomUserCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # 1. Формируем список выбора автомобиля
         fleet_choices = [('own', 'Свой автомобиль')]
 
         try:
-            # ИЗМЕНЕНИЕ ЗДЕСЬ: ищем машины со статусом 'на стоянке'
             available_fleets = Fleet.objects.filter(status='на стоянке')
             for car in available_fleets:
                 fleet_choices.append((str(car.id), str(car)))
@@ -50,7 +44,6 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields['fleet_choice'].widget.attrs.update({'class': 'form-select'})
 
         self.fields['fleet_choice'].choices = fleet_choices
-        # Добавляем класс bootstrap
         self.fields['fleet_choice'].widget.attrs.update({'class': 'form-select'})
 
     def clean(self):
@@ -62,7 +55,6 @@ class CustomUserCreationForm(UserCreationForm):
                 self.add_error('driving_license', 'Для водителя обязательно указать права.')
             if cleaned_data.get('experience_years') is None:
                 self.add_error('experience_years', 'Для водителя обязательно указать стаж.')
-            # Проверяем, что водитель выбрал хоть что-то в списке машин
             if not cleaned_data.get('fleet_choice'):
                 self.add_error('fleet_choice', 'Выберите транспортное средство.')
 
@@ -79,7 +71,6 @@ class CustomUserCreationForm(UserCreationForm):
             role = self.cleaned_data['role']
             phone = self.cleaned_data['phone']
 
-            # Получаем общие данные (они теперь есть в форме для всех)
             patronymic = self.cleaned_data.get('patronymic', '')
             last_name = self.cleaned_data['last_name']
             first_name = self.cleaned_data['first_name']
@@ -88,16 +79,12 @@ class CustomUserCreationForm(UserCreationForm):
                 Client.objects.create(
                     user=user,
                     phone=phone,
-                    # Добавляем сохранение полей в модель Client
                     last_name=last_name,
                     first_name=first_name,
                     patronymic=patronymic
                 )
 
             elif role == 'водитель':
-                # ... код для водителя остается прежним ...
-                # (код с fleet_choice и созданием Driver)
-                # ...
                 choice = self.cleaned_data.get('fleet_choice')
                 assigned_fleet = None
 
@@ -121,7 +108,6 @@ class CustomUserCreationForm(UserCreationForm):
         return user
 
 
-# Остальные формы (DeliveryForm, CargoForm, RouteForm) без изменений
 class DeliveryForm(forms.ModelForm):
     class Meta:
         model = Delivery
