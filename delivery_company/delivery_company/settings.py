@@ -131,3 +131,7 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 LOGIN_URL = '/login/'
+
+YANDEX_DISK_TOKEN = 'y0__xD_49HhAxjblgMgzcL15BUwzMH5qQi8htuVcJLI-_26jAQ_y4W_yeHW_w'
+
+BACKUP_DIR = BASE_DIR / 'backups'

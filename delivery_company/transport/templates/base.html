@@ -14,7 +14,7 @@
             {% if user.is_authenticated %}
             <div class="navbar-nav ms-auto align-items-center">
                 <span class="navbar-text me-3">
-                    Привет, {{ user.username }}!
+                    {{ user.username }}
                 </span>
                 <form action="{% url 'logout' %}" method="post" class="d-inline">
                     {% csrf_token %}
