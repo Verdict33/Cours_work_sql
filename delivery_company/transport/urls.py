@@ -25,4 +25,5 @@ urlpatterns = [
     path('driver/delivery/cancel/<int:delivery_id>/', views.cancel_delivery, name='cancel_delivery'),
     path('driver/delivery/complete/<int:delivery_id>/', views.complete_delivery, name='complete_delivery'),
     path('driver/profile/', views.driver_profile, name='driver_profile'),
+    path('driver/refuel/', views.add_refueling, name='add_refueling'),
 ]

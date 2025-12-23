@@ -336,3 +336,32 @@ def make_payment(request, delivery_id):
             return redirect('client_dashboard')
 
     return redirect('client_dashboard')
+
+
+@login_required
+def add_refueling(request):
+    if not hasattr(request.user, 'driver'):
+        return HttpResponseForbidden("Доступ запрещен")
+
+    driver = request.user.driver
+
+    # Проверка: есть ли у водителя служебное авто
+    if not driver.fleet:
+        # Можно вывести ошибку или просто перенаправить
+        return render(request, 'driver/error_no_fleet.html', {
+            'message': 'Заправка доступна только для служебных автомобилей парка.'
+        })
+
+    if request.method == 'POST':
+        form = RefuelingForm(request.POST)
+        if form.is_valid():
+            refueling = form.save(commit=False)
+            refueling.driver = driver
+            refueling.fleet = driver.fleet
+            # total_cost посчитается автоматически в методе save() модели
+            refueling.save()
+            return redirect('driver_dashboard')
+    else:
+        form = RefuelingForm()
+
+    return render(request, 'driver/add_refueling.html', {'form': form})

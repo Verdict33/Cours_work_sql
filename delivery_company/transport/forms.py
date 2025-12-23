@@ -1,7 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
-from .models import Client, Driver, Delivery, Cargo, Route, Fleet, Feedback, Payment
+from .models import *
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -185,4 +184,20 @@ class PaymentForm(forms.ModelForm):
         }
         widgets = {
             'method': forms.Select(attrs={'class': 'form-select'}),
+        }
+
+
+class RefuelingForm(forms.ModelForm):
+    class Meta:
+        model = Refueling
+        fields = ['fuel_type', 'liters', 'cost_per_liter']
+        labels = {
+            'fuel_type': 'Вид топлива',
+            'liters': 'Количество литров',
+            'cost_per_liter': 'Цена за литр (руб)',
+        }
+        widgets = {
+            'fuel_type': forms.Select(attrs={'class': 'form-select'}),
+            'liters': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'placeholder': 'Например: 45.5'}),
+            'cost_per_liter': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Например: 55.00'}),
         }
